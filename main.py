@@ -93,6 +93,23 @@ class State:
 		raise NotImplementedError
 
 
+class SetSplitGuides(State):
+	def __init__(self, ctx: DataContext) -> None:
+		super().__init__(ctx)
+		self._sub_state = SelectTopLeftState(ctx) if ctx.guide_params is None else WaitState(ctx)
+
+
+	def handle(self, events: list[Event]) -> Self | None:
+		next_state = self._sub_state.handle(events)
+
+		if next_state is None:
+			return ShowImageSplitState(self._ctx)
+		elif next_state == self._sub_state:
+			return self
+
+		self._sub_state = next_state
+
+
 class SelectTopLeftState(State):
 	def handle(self, events: list[Event]) -> Self | None:
 		self._ctx.guide_params = GuideParams(pygame.mouse.get_pos(), (100, 100), 'red')
@@ -140,7 +157,7 @@ class WaitState(State):
 
 		for event in events:
 			if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
-				return ShowImageSplitState(self._ctx)
+				return None
 			elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:
 				return SetSizeState(self._ctx)
 		return self
@@ -199,7 +216,7 @@ def main():
 
 	clock = pygame.time.Clock()
 	init_ctx = DataContext(window, screencap_surface, load_guide_params(), pil_image, my_font)
-	current_state = SelectTopLeftState(init_ctx) if init_ctx.guide_params is None else WaitState(init_ctx)
+	current_state = SetSplitGuides(init_ctx)
 
 	while current_state is not None:
 		clock.tick(60)
