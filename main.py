@@ -28,61 +28,6 @@ class GuideParams:
 				yield rect
 
 
-class State:
-	def get_guide_params(self) -> GuideParams:
-		raise NotImplementedError
-
-	def get_next_state(self, event: pygame.event.Event) -> Self | None:
-		raise NotImplementedError
-
-
-class SelectTopLeftState(State):
-	def __init__(self) -> None:
-		self._current_guide_params = None
-
-	def get_guide_params(self) -> GuideParams:
-		self._current_guide_params = GuideParams(pygame.mouse.get_pos(), (100, 100), 'red')
-		return self._current_guide_params
-
-	def get_next_state(self, event: pygame.event.Event) -> Self | None:
-		if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-			return SetSizeState(self._current_guide_params)
-		return self
-
-
-class SetSizeState(State):
-	def __init__(self, guide_params: GuideParams) -> None:
-		self._prev_params = guide_params
-		self._current_guide_params = None
-
-	def get_guide_params(self) -> GuideParams:
-		mouse_pos = pygame.mouse.get_pos()
-		size = (mouse_pos[0] - self._prev_params.top_left[0], mouse_pos[1] - self._prev_params.top_left[1])
-
-		self._current_guide_params = GuideParams(self._prev_params.top_left, size, 'blue')
-		return self._current_guide_params
-
-	def get_next_state(self, event: pygame.event.Event) -> Self | None:
-		if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-			return WaitState(self._current_guide_params)
-		elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:
-			return SelectTopLeftState()
-		return self
-
-
-class WaitState(State):
-	def __init__(self, guide_params: GuideParams) -> None:
-		self._prev_params = guide_params
-
-	def get_guide_params(self) -> GuideParams:
-		return self._prev_params
-
-	def get_next_state(self, event: pygame.event.Event) -> Self | None:
-		if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
-			return SetSizeState(self._prev_params)
-		return self
-
-
 def get_grid_guide(size: tuple[int, int], guide_params: GuideParams) -> pygame.Surface:
 	surface = pygame.Surface(size, pygame.SRCALPHA, 32)
 
@@ -90,6 +35,70 @@ def get_grid_guide(size: tuple[int, int], guide_params: GuideParams) -> pygame.S
 		pygame.draw.rect(surface, guide_params.color, rect, width=2)
 
 	return surface
+
+
+@dataclass
+class DataContext:
+	window: pygame.Surface
+	background_surface: pygame.Surface
+	guide_params: GuideParams
+
+
+class State:
+	def __init__(self, ctx: DataContext) -> None:
+		self._ctx: DataContext = ctx
+
+	def handle(self, events: list[pygame.event.Event]) -> Self | None:
+		raise NotImplementedError
+
+
+class SelectTopLeftState(State):
+	def handle(self, events: list[pygame.event.Event]) -> Self | None:
+		self._ctx.guide_params = GuideParams(pygame.mouse.get_pos(), (100, 100), 'red')
+		grid_surface = get_grid_guide(self._ctx.window.get_size(), self._ctx.guide_params)
+
+		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
+		self._ctx.window.blit(grid_surface, grid_surface.get_rect())
+
+		for event in events:
+			if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+				return SetSizeState(self._ctx)
+
+		return self
+
+
+class SetSizeState(State):
+	def handle(self, events: list[pygame.event.Event]) -> Self | None:
+		mouse_pos = pygame.mouse.get_pos()
+		size = (mouse_pos[0] - self._ctx.guide_params.top_left[0], mouse_pos[1] - self._ctx.guide_params.top_left[1])
+
+		self._ctx.guide_params = GuideParams(self._ctx.guide_params.top_left, size, 'blue')
+
+		grid_surface = get_grid_guide(self._ctx.window.get_size(), self._ctx.guide_params)
+
+		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
+		self._ctx.window.blit(grid_surface, grid_surface.get_rect())
+
+		for event in events:
+			if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+				return WaitState(self._ctx)
+			elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+				return SelectTopLeftState(self._ctx)
+
+		return self
+
+
+class WaitState(State):
+	def handle(self, events: list[pygame.event.Event]) -> Self | None:
+		grid_surface = get_grid_guide(self._ctx.window.get_size(), self._ctx.guide_params)
+
+		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
+		self._ctx.window.blit(grid_surface, grid_surface.get_rect())
+
+		for event in events:
+			if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+				return SetSizeState(self._ctx)
+		return self
 
 
 def main():
@@ -102,30 +111,22 @@ def main():
 	screencap_surface = pil_image_to_surface(pil_image)
 
 	clock = pygame.time.Clock()
-	current_state = SelectTopLeftState()
+	current_state = SelectTopLeftState(DataContext(window, screencap_surface, None))
 
 	while current_state is not None:
 		clock.tick(60)
 
-		for event in pygame.event.get():
+		events = pygame.event.get()
+		for event in events:
 			if event.type == pygame.QUIT or (event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE):
-				next_state = None
+				current_state = None
 				break
-			else:
-				next_state = current_state.get_next_state(event)
-				if next_state is None:
-					break
 
-		if next_state is None:
+		if current_state is None:
 			break
 
-		guide_params = current_state.get_guide_params()
-		grid_surface = get_grid_guide((info_object.current_w, info_object.current_h), guide_params)
-
 		window.fill(0)
-		window.blit(screencap_surface, screencap_surface.get_rect())
-		window.blit(grid_surface, grid_surface.get_rect())
-
+		next_state = current_state.handle(events)
 		pygame.display.flip()
 
 		if next_state != current_state:
