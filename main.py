@@ -41,7 +41,7 @@ class DataContext:
 	window: pygame.Surface
 	background_surface: pygame.Surface
 	guide_params: GuideParams
-	pil_image: Image
+	pil_image: Image.Image
 
 
 class State:
