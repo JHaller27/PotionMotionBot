@@ -1,6 +1,7 @@
 from PIL import ImageGrab, Image, ImageStat
 import pygame
 from pygame.event import Event
+import colorsys
 
 from dataclasses import dataclass
 from typing import Self, Iterator
@@ -33,6 +34,7 @@ class DataContext:
 	background_surface: pygame.Surface
 	guide_params: GuideParams
 	pil_image: Image.Image
+	font: pygame.font.Font
 
 
 def pil_image_to_surface(pil_image: Image.Image) -> pygame.Surface:
@@ -154,16 +156,24 @@ class ShowImageSplitState(State):
 			subimg = Image.merge(subimg.mode, source).convert('RGB')
 
 			img_stat = ImageStat.Stat(subimg, mask=inv_mask)
-			avg_img = Image.new('RGB', subimg.size, tuple(map(int, img_stat.mean)))
+			mean = tuple(map(int, img_stat.mean))
+			avg_img = Image.new('RGB', subimg.size, mean)
 
 			sub_surface = pil_image_to_surface(avg_img)
 			self._ctx.window.blit(sub_surface, cell_rect)
+
+			mean_hsv = colorsys.rgb_to_hsv(*(x/255 for x in img_stat.mean))
+			label = self._ctx.font.render('%.3f' % mean_hsv[0], False, 'black', 'white')
+			self._ctx.window.blit(label, cell_rect.topleft)
 
 		return self
 
 
 def main():
 	pygame.init()
+	pygame.font.init()
+	my_font = pygame.font.SysFont('Comic Sans MS', 16)
+
 	info_object = pygame.display.Info()
 	window = pygame.display.set_mode((info_object.current_w, info_object.current_h), pygame.FULLSCREEN)
 
@@ -172,7 +182,7 @@ def main():
 	screencap_surface = pil_image_to_surface(pil_image)
 
 	clock = pygame.time.Clock()
-	init_ctx = DataContext(window, screencap_surface, load_guide_params(), pil_image)
+	init_ctx = DataContext(window, screencap_surface, load_guide_params(), pil_image, my_font)
 	current_state = SelectTopLeftState(init_ctx) if init_ctx.guide_params is None else WaitState(init_ctx)
 
 	while current_state is not None:
