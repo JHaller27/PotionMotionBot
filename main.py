@@ -1,205 +1,10 @@
-from PIL import ImageGrab, Image, ImageStat
+from PIL import ImageGrab
 import pygame
-from pygame.event import Event
-import colorsys
 
-from dataclasses import dataclass
-from typing import Self, Iterator
-from pathlib import Path
-import json
+import utils
 
-
-PERSIST_PATH = (Path('~') / 'PotionMotion' / 'persist.json').expanduser()
-CLASSIFICATION = {
-	(0, 0.015): 'RED',
-	(0.085, 0.087): 'ORANGE',
-	(0.140, 0.143): 'YELLOW',
-	(0.247, 0.250): 'CLOVER',
-	(0.316, 0.322): 'GREEN',
-}
-
-
-GRID_SIZE = (7, 6)
-
-
-@dataclass
-class GuideParams:
-	top_left: tuple[int, int]
-	size: tuple[int, int]
-	color: str
-
-	def get_cell_rects(self) -> Iterator[pygame.Rect]:
-		cell_size = (self.size[0] // GRID_SIZE[0], self.size[1] // GRID_SIZE[1])
-		for x in range(GRID_SIZE[0]):
-			for y in range(GRID_SIZE[1]):
-				yield pygame.Rect(cell_size[0] * x + self.top_left[0], cell_size[1] * y + self.top_left[1], cell_size[0], cell_size[1])
-
-
-@dataclass
-class DataContext:
-	window: pygame.Surface
-	background_surface: pygame.Surface
-	guide_params: GuideParams
-	pil_image: Image.Image
-	font: pygame.font.Font
-
-
-def pil_image_to_surface(pil_image: Image.Image) -> pygame.Surface:
-	return pygame.image.fromstring(
-		pil_image.tobytes(), pil_image.size, pil_image.mode).convert()
-
-
-def load_guide_params() -> GuideParams | None:
-	if not PERSIST_PATH.is_file():
-		return None
-	with PERSIST_PATH.open() as fp:
-		obj: dict = json.load(fp)
-	return GuideParams(tuple(obj.get('top_left')), tuple(obj.get('size')), obj.get('color'))
-
-
-def save_guide_params(guide_params: GuideParams):
-	PERSIST_PATH.parent.mkdir(parents=True, exist_ok=True)
-	with PERSIST_PATH.open('w') as fp:
-		json.dump({
-			'top_left': list(guide_params.top_left),
-			'size': list(guide_params.size),
-			'color': guide_params.color,
-		}, fp)
-
-
-def get_grid_guide(size: tuple[int, int], guide_params: GuideParams) -> pygame.Surface:
-	surface = pygame.Surface(size, pygame.SRCALPHA, 32)
-
-	for rect in guide_params.get_cell_rects():
-		pygame.draw.rect(surface, guide_params.color, rect, width=2)
-
-	return surface
-
-
-def classify_hue(hue: float) -> str:
-	# hue = [0, 1]
-
-	for (x,y), label in CLASSIFICATION.items():
-		if x <= hue <= y:
-			return label
-	return f'{hue:.3f}'
-
-
-class State:
-	def __init__(self, ctx: DataContext) -> None:
-		self._ctx: DataContext = ctx
-
-	def handle(self, events: list[Event]) -> Self | None:
-		raise NotImplementedError
-
-
-class SetSplitGuides(State):
-	def __init__(self, ctx: DataContext) -> None:
-		super().__init__(ctx)
-		self._sub_state = SelectTopLeftState(ctx) if ctx.guide_params is None else WaitState(ctx)
-
-
-	def handle(self, events: list[Event]) -> Self | None:
-		next_state = self._sub_state.handle(events)
-
-		if next_state is None:
-			return ShowImageSplitState(self._ctx)
-		elif next_state == self._sub_state:
-			return self
-
-		self._sub_state = next_state
-
-
-class SelectTopLeftState(State):
-	def handle(self, events: list[Event]) -> Self | None:
-		self._ctx.guide_params = GuideParams(pygame.mouse.get_pos(), (100, 100), 'red')
-		grid_surface = get_grid_guide(self._ctx.window.get_size(), self._ctx.guide_params)
-
-		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
-		self._ctx.window.blit(grid_surface, grid_surface.get_rect())
-
-		for event in events:
-			if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-				return SetSizeState(self._ctx)
-
-		return self
-
-
-class SetSizeState(State):
-	def handle(self, events: list[Event]) -> Self | None:
-		mouse_pos = pygame.mouse.get_pos()
-		size = (mouse_pos[0] - self._ctx.guide_params.top_left[0], mouse_pos[1] - self._ctx.guide_params.top_left[1])
-
-		self._ctx.guide_params = GuideParams(self._ctx.guide_params.top_left, size, 'blue')
-
-		grid_surface = get_grid_guide(self._ctx.window.get_size(), self._ctx.guide_params)
-
-		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
-		self._ctx.window.blit(grid_surface, grid_surface.get_rect())
-
-		for event in events:
-			if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-				return WaitState(self._ctx)
-			elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:
-				return SelectTopLeftState(self._ctx)
-
-		return self
-
-
-class WaitState(State):
-	def handle(self, events: list[Event]) -> Self | None:
-		save_guide_params(self._ctx.guide_params)
-
-		grid_surface = get_grid_guide(self._ctx.window.get_size(), self._ctx.guide_params)
-
-		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
-		self._ctx.window.blit(grid_surface, grid_surface.get_rect())
-
-		for event in events:
-			if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
-				return None
-			elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:
-				return SetSizeState(self._ctx)
-		return self
-
-
-class ShowImageSplitState(State):
-	def __init__(self, ctx: DataContext) -> None:
-		super().__init__(ctx)
-		self._h_start = 241
-		self._h_end = 250
-
-	def handle(self, events: list[Event]) -> Self | None:
-		H,S,V = 0,1,2
-		for cell_rect in self._ctx.guide_params.get_cell_rects():
-			subimg = self._ctx.pil_image.crop((cell_rect.left, cell_rect.top, cell_rect.right, cell_rect.bottom))
-			subimg = subimg.convert('HSV')
-
-			source = subimg.split()
-
-			mask = source[H].point(lambda i: i in range(self._h_start, self._h_end) and 255)
-			inv_mask = source[H].point(lambda i: 255 - i)
-
-			out = source[S].point(lambda i: 0)
-			source[S].paste(out, None, mask)
-
-			out = source[V].point(lambda i: 0)
-			source[V].paste(out, None, mask)
-
-			subimg = Image.merge(subimg.mode, source).convert('RGB')
-
-			img_stat = ImageStat.Stat(subimg, mask=inv_mask)
-			mean = tuple(map(int, img_stat.mean))
-			avg_img = Image.new('RGB', subimg.size, mean)
-
-			sub_surface = pil_image_to_surface(avg_img)
-			self._ctx.window.blit(sub_surface, cell_rect)
-
-			mean_hsv = colorsys.rgb_to_hsv(*(x/255 for x in img_stat.mean))
-			label = self._ctx.font.render(classify_hue(mean_hsv[H]), True, 'black', 'white')
-			self._ctx.window.blit(label, cell_rect.topleft)
-
-		return self
+from models import DataContext
+import state_machine as fsm
 
 
 def main():
@@ -212,11 +17,11 @@ def main():
 
 	bbox = (0, 0, info_object.current_w, info_object.current_h)
 	pil_image = ImageGrab.grab(bbox)
-	screencap_surface = pil_image_to_surface(pil_image)
+	screencap_surface = utils.pil_image_to_surface(pil_image)
 
 	clock = pygame.time.Clock()
-	init_ctx = DataContext(window, screencap_surface, load_guide_params(), pil_image, my_font)
-	current_state = SetSplitGuides(init_ctx)
+	init_ctx = DataContext(window, screencap_surface, utils.load_guide_params(), pil_image, my_font)
+	current_state: fsm.State = fsm.INIT_STATE(init_ctx)
 
 	while current_state is not None:
 		clock.tick(60)
