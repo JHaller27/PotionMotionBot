@@ -10,6 +10,13 @@ import json
 
 
 PERSIST_PATH = (Path('~') / 'PotionMotion' / 'persist.json').expanduser()
+CLASSIFICATION = {
+	(0, 0.015): 'RED',
+	(0.085, 0.087): 'ORANGE',
+	(0.140, 0.143): 'YELLOW',
+	(0.247, 0.250): 'CLOVER',
+	(0.316, 0.322): 'GREEN',
+}
 
 
 GRID_SIZE = (7, 6)
@@ -67,6 +74,15 @@ def get_grid_guide(size: tuple[int, int], guide_params: GuideParams) -> pygame.S
 		pygame.draw.rect(surface, guide_params.color, rect, width=2)
 
 	return surface
+
+
+def classify_hue(hue: float) -> str:
+	# hue = [0, 1]
+
+	for (x,y), label in CLASSIFICATION.items():
+		if x <= hue <= y:
+			return label
+	return f'{hue:.3f}'
 
 
 class State:
@@ -163,7 +179,7 @@ class ShowImageSplitState(State):
 			self._ctx.window.blit(sub_surface, cell_rect)
 
 			mean_hsv = colorsys.rgb_to_hsv(*(x/255 for x in img_stat.mean))
-			label = self._ctx.font.render('%.3f' % mean_hsv[0], False, 'black', 'white')
+			label = self._ctx.font.render(classify_hue(mean_hsv[H]), True, 'black', 'white')
 			self._ctx.window.blit(label, cell_rect.topleft)
 
 		return self
