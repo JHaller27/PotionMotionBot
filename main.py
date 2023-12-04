@@ -1,4 +1,4 @@
-from PIL import ImageGrab, Image
+from PIL import ImageGrab, Image, ImageStat
 import pygame
 from pygame.event import Event
 
@@ -135,18 +135,6 @@ class ShowImageSplitState(State):
 		self._h_end = 250
 
 	def handle(self, events: list[Event]) -> Self | None:
-		for event in events:
-			if event.type == pygame.KEYUP and event.key == pygame.K_UP:
-				self._h_start += 1
-			elif event.type == pygame.KEYUP and event.key == pygame.K_DOWN:
-				self._h_start -= 1
-			if event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
-				self._h_end += 1
-			elif event.type == pygame.KEYUP and event.key == pygame.K_LEFT:
-				self._h_end -= 1
-
-		print(self._h_start, self._h_end)
-
 		H,S,V = 0,1,2
 		for cell_rect in self._ctx.guide_params.get_cell_rects():
 			subimg = self._ctx.pil_image.crop((cell_rect.left, cell_rect.top, cell_rect.right, cell_rect.bottom))
@@ -155,6 +143,7 @@ class ShowImageSplitState(State):
 			source = subimg.split()
 
 			mask = source[H].point(lambda i: i in range(self._h_start, self._h_end) and 255)
+			inv_mask = source[H].point(lambda i: 255 - i)
 
 			out = source[S].point(lambda i: 0)
 			source[S].paste(out, None, mask)
@@ -164,7 +153,10 @@ class ShowImageSplitState(State):
 
 			subimg = Image.merge(subimg.mode, source).convert('RGB')
 
-			sub_surface = pil_image_to_surface(subimg)
+			img_stat = ImageStat.Stat(subimg, mask=inv_mask)
+			avg_img = Image.new('RGB', subimg.size, tuple(map(int, img_stat.mean)))
+
+			sub_surface = pil_image_to_surface(avg_img)
 			self._ctx.window.blit(sub_surface, cell_rect)
 
 		return self
