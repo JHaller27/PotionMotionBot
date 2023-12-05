@@ -10,7 +10,7 @@ import state_machine as fsm
 def main():
 	pygame.init()
 	pygame.font.init()
-	my_font = pygame.font.SysFont('Comic Sans MS', 16)
+	my_font = pygame.font.SysFont('Comic Sans MS', 12)
 
 	info_object = pygame.display.Info()
 	window = pygame.display.set_mode((info_object.current_w, info_object.current_h), pygame.FULLSCREEN)

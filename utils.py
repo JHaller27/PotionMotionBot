@@ -13,6 +13,7 @@ PERSIST_PATH = (Path('~') / 'PotionMotion' / 'persist.json').expanduser()
 
 CLASSIFICATION = {
 	(0.000, 0.015): 'RED',
+	(0.074, 0.084): 'BROWN',
 	(0.085, 0.087): 'ORANGE',
 	(0.140, 0.143): 'YELLOW',
 	(0.247, 0.250): 'CLOVER',
@@ -61,5 +62,5 @@ def classify_hue(hue: float) -> str:
 
 	for (x,y), label in CLASSIFICATION.items():
 		if x <= hue <= y:
-			return label
+			return f'{label} ({hue:.3f})'
 	return f'{hue:.3f}'
