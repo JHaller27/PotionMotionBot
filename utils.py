@@ -12,11 +12,15 @@ GRID_SIZE = (7, 6)
 PERSIST_PATH = (Path('~') / 'PotionMotion' / 'persist.json').expanduser()
 
 CLASSIFICATION = {
-	(0, 0.015): 'RED',
+	(0.000, 0.015): 'RED',
 	(0.085, 0.087): 'ORANGE',
 	(0.140, 0.143): 'YELLOW',
 	(0.247, 0.250): 'CLOVER',
 	(0.316, 0.322): 'GREEN',
+	(0.467, 0.470): 'AQUA',
+	(0.578, 0.580): 'BLUE',
+	(0.749, 0.752): 'PURPLE',
+	(0.869, 0.871): 'PINK',
 }
 
 
