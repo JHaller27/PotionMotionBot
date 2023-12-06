@@ -3,7 +3,7 @@ from PIL import Image
 from dataclasses import dataclass
 from typing import Iterator
 
-import utils
+import config
 
 
 @dataclass
@@ -13,9 +13,9 @@ class GuideParams:
 	color: str
 
 	def get_cell_rects(self) -> Iterator[pygame.Rect]:
-		cell_size = (self.size[0] // utils.GRID_SIZE[0], self.size[1] // utils.GRID_SIZE[1])
-		for x in range(utils.GRID_SIZE[0]):
-			for y in range(utils.GRID_SIZE[1]):
+		cell_size = (self.size[0] // config.GRID_SIZE[0], self.size[1] // config.GRID_SIZE[1])
+		for x in range(config.GRID_SIZE[0]):
+			for y in range(config.GRID_SIZE[1]):
 				yield pygame.Rect(cell_size[0] * x + self.top_left[0], cell_size[1] * y + self.top_left[1], cell_size[0], cell_size[1])
 
 
