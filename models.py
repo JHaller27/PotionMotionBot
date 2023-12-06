@@ -26,3 +26,5 @@ class DataContext:
 	guide_params: GuideParams
 	pil_image: Image.Image
 	font: pygame.font.Font
+	classified_grid: list[list]
+	cell_rects: list[list[pygame.Rect]]

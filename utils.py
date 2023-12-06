@@ -62,5 +62,5 @@ def classify_hue(hue: float) -> str:
 
 	for (x,y), label in CLASSIFICATION.items():
 		if x <= hue <= y:
-			return f'{label} ({hue:.3f})'
+			return f'{label}'
 	return f'{hue:.3f}'

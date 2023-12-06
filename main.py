@@ -20,7 +20,7 @@ def main():
 	screencap_surface = utils.pil_image_to_surface(pil_image)
 
 	clock = pygame.time.Clock()
-	init_ctx = DataContext(window, screencap_surface, utils.load_guide_params(), pil_image, my_font)
+	init_ctx = DataContext(window, screencap_surface, utils.load_guide_params(), pil_image, my_font, None, [])
 	current_state: fsm.State = fsm.INIT_STATE(init_ctx)
 
 	while current_state is not None:

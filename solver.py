@@ -118,7 +118,7 @@ class Solver:
 				edges = generate_edges(w, h, no_col_xform, xforms)
 				self._all_edges.append(edges)
 
-	def find_first_move(self, board: list[list], min_score: int) -> tuple[T_XFORM, T_XFORM]:
+	def find_first_move(self, board: list[list], min_score: int) -> tuple[T_XFORM, T_XFORM] | None:
 		for move in self._all_edges:
 			score = _score(board, move)
 			if score >= min_score:
