@@ -12,6 +12,7 @@ from .set_split_guides import SelectTopLeftState, WaitState
 from solver import Solver
 
 import utils
+from time import sleep
 
 
 class SetSplitGuides(State):
@@ -34,12 +35,17 @@ class SetSplitGuides(State):
 
 class TakeScreenShot(State):
 	def handle(self, events: list[Event]) -> Self | None:
-		pil_image = ImageGrab.grab(self._ctx.bbox)
-		screencap_surface = utils.pil_image_to_surface(pil_image)
+		for event in events:
+			if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
+				pil_image = ImageGrab.grab(self._ctx.bbox)
+				screencap_surface = utils.pil_image_to_surface(pil_image)
 
-		self._ctx.background_surface = screencap_surface
+				self._ctx.pil_image = pil_image
+				self._ctx.background_surface = screencap_surface
 
-		return ShowImageSplitState(self._ctx)
+				return ShowImageSplitState(self._ctx)
+
+		return self
 
 
 class ShowImageSplitState(State):
@@ -130,6 +136,7 @@ class ShowSuggestedMove(State):
 			print('No valid move found')
 			return None
 
+		print(xforms)
 		col_xform, row_xform = xforms
 
 		src_cell = [0, 0]
@@ -152,9 +159,6 @@ class ShowSuggestedMove(State):
 		pygame.draw.line(self._ctx.background_surface, 'red', src_rect.center, dst_rect.center, 4)
 		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
 
-		for event in events:
-			if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
-				mouse.drag(src_rect.centerx, src_rect.centery, dst_rect.centerx, dst_rect.centery)
-				return TakeScreenShot(self._ctx)
-
-		return self
+		mouse.drag(src_rect.centerx, src_rect.centery, dst_rect.centerx, dst_rect.centery, duration=0.5)
+		sleep(0.5)
+		return TakeScreenShot(self._ctx)

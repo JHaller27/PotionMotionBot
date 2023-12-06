@@ -91,6 +91,9 @@ def _score(board: list[list], board_edges: BoardEdges) -> int:
 		neighborhoods[rep].add(src)
 		neighborhoods[rep].add(dst)
 
+	if len(neighborhoods) == 0:
+		return 0
+
 	best_neighborhood = max(neighborhoods, key=lambda k: len(neighborhoods[k]))
 	return len(neighborhoods[best_neighborhood])
 
