@@ -38,7 +38,9 @@ class SetSplitGuides(State):
 
 class TakeScreenShot(State):
 	def handle(self, events: list[Event]) -> Self | None:
-		keyboard.wait('x')
+		if config.PROMPT_TO_SCREENCAP:
+			keyboard.wait('x')
+
 		pil_image = ImageGrab.grab(self._ctx.bbox)
 		screencap_surface = utils.pil_image_to_surface(pil_image)
 
