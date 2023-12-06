@@ -5,6 +5,8 @@ import pygame
 from pygame.event import Event
 from PIL import Image, ImageStat, ImageGrab
 
+import mouse
+
 from .state import State
 from .set_split_guides import SelectTopLeftState, WaitState
 from solver import Solver
@@ -152,6 +154,7 @@ class ShowSuggestedMove(State):
 
 		for event in events:
 			if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
+				mouse.drag(src_rect.centerx, src_rect.centery, dst_rect.centerx, dst_rect.centery)
 				return TakeScreenShot(self._ctx)
 
 		return self
