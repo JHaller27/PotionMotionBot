@@ -41,21 +41,23 @@ class PlayGame(State):
 		super().__init__(ctx)
 		self._sub_state = ShowImageSplitState(ctx)
 
-		keyboard.add_hotkey('ESCAPE', self._break_loop)
-		self._t_event = Event()
+		if config.ESCAPE_FROM_PLAY_KEY:
+			keyboard.add_hotkey(config.ESCAPE_FROM_PLAY_KEY, self._break_loop)
+			self._t_event = Event()
 
 	def _break_loop(self):
 		print('Break loop')
 		self._t_event.set()
 
 	def handle(self, events: list[Event]) -> Self | None:
-		if self._t_event.is_set():
+		if config.ESCAPE_FROM_PLAY_KEY and self._t_event.is_set():
 			return None
 
 		next_state = self._sub_state.handle(events)
 
 		if next_state is None:
-			keyboard.remove_hotkey('ESCAPE')
+			if config.ESCAPE_FROM_PLAY_KEY:
+				keyboard.remove_hotkey('ESCAPE')
 			return None
 
 		if next_state != self._sub_state:
@@ -66,7 +68,7 @@ class PlayGame(State):
 class TakeScreenShot(State):
 	def handle(self, events: list[Event]) -> Self | None:
 		if config.PROMPT_TO_SCREENCAP:
-			keyboard.wait('x')
+			keyboard.wait(config.PROMPT_TO_SCREENCAP)
 
 		pil_image = ImageGrab.grab(self._ctx.bbox)
 		screencap_surface = utils.pil_image_to_surface(pil_image)
@@ -146,14 +148,14 @@ class ShowImageSplitState(State):
 				self._ctx.classified_grid[-1].append(pixels2label_map[px_xy])
 				self._ctx.cell_rects[-1].append(pixels2rect_map[px_xy])
 
-		if config.PROMPT_AFTER_SHOW_DRAG:
-			for event in events:
-				if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
-					return ShowSuggestedMove(self._ctx)
+		if not config.PROMPT_AFTER_SHOW_DRAG:
+			return ShowSuggestedMove(self._ctx)
 
-			return self
+		for event in events:
+			if event.type == pygame.KEYUP and event.key == config.PROMPT_AFTER_SHOW_DRAG:
+				return ShowSuggestedMove(self._ctx)
 
-		return ShowSuggestedMove(self._ctx)
+		return self
 
 
 class ShowSuggestedMove(State):
@@ -194,11 +196,11 @@ class ShowSuggestedMove(State):
 			mouse.drag(src_rect.centerx, src_rect.centery, dst_rect.centerx, dst_rect.centery, duration=0.1)
 			sleep(0.5)
 
-		if config.PROMPT_AFTER_DRAG:
-			for event in events:
-				if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
-					return TakeScreenShot(self._ctx)
+		if not config.PROMPT_AFTER_DRAG:
+			return TakeScreenShot(self._ctx)
 
-			return self
+		for event in events:
+			if event.type == pygame.KEYUP and event.key == config.PROMPT_AFTER_DRAG:
+				return TakeScreenShot(self._ctx)
 
-		return TakeScreenShot(self._ctx)
+		return self
