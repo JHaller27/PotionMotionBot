@@ -83,7 +83,7 @@ def _score(board: list[list], board_edges: BoardEdges) -> int:
 		elif dst in representatives:
 			rep = representatives[dst]
 		else:
-			rep = representatives[dst] = src
+			rep = representatives[dst] = representatives[src] = src
 
 		if rep not in neighborhoods:
 			neighborhoods[rep] = set()

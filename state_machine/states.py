@@ -15,6 +15,8 @@ from solver import Solver
 import utils
 from time import sleep
 
+import config
+
 
 class SetSplitGuides(State):
 	def __init__(self, ctx: DataContext) -> None:
@@ -115,11 +117,13 @@ class ShowImageSplitState(State):
 				self._ctx.classified_grid[-1].append(pixels2label_map[px_xy])
 				self._ctx.cell_rects[-1].append(pixels2rect_map[px_xy])
 
-		# for event in events:
-		# 	if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
-		# 		return ShowSuggestedMove(self._ctx)
+		if config.PROMPT_AFTER_SHOW_DRAG:
+			for event in events:
+				if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
+					return ShowSuggestedMove(self._ctx)
 
-		# return self
+			return self
+
 		return ShowSuggestedMove(self._ctx)
 
 
@@ -157,6 +161,15 @@ class ShowSuggestedMove(State):
 		pygame.draw.line(self._ctx.background_surface, 'red', src_rect.center, dst_rect.center, 4)
 		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
 
-		mouse.drag(src_rect.centerx, src_rect.centery, dst_rect.centerx, dst_rect.centery, duration=0.5)
-		sleep(0.5)
+		if config.ENABLE_MOUSE:
+			mouse.drag(src_rect.centerx, src_rect.centery, dst_rect.centerx, dst_rect.centery, duration=0.1)
+			sleep(0.5)
+
+		if config.PROMPT_AFTER_DRAG:
+			for event in events:
+				if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
+					return TakeScreenShot(self._ctx)
+
+			return self
+
 		return TakeScreenShot(self._ctx)
