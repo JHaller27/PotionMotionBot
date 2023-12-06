@@ -6,6 +6,7 @@ from pygame.event import Event
 from PIL import Image, ImageStat, ImageGrab
 
 import mouse
+import keyboard
 
 from .state import State
 from .set_split_guides import SelectTopLeftState, WaitState
@@ -35,17 +36,14 @@ class SetSplitGuides(State):
 
 class TakeScreenShot(State):
 	def handle(self, events: list[Event]) -> Self | None:
-		for event in events:
-			if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
-				pil_image = ImageGrab.grab(self._ctx.bbox)
-				screencap_surface = utils.pil_image_to_surface(pil_image)
+		keyboard.wait('x')
+		pil_image = ImageGrab.grab(self._ctx.bbox)
+		screencap_surface = utils.pil_image_to_surface(pil_image)
 
-				self._ctx.pil_image = pil_image
-				self._ctx.background_surface = screencap_surface
+		self._ctx.pil_image = pil_image
+		self._ctx.background_surface = screencap_surface
 
-				return ShowImageSplitState(self._ctx)
-
-		return self
+		return ShowImageSplitState(self._ctx)
 
 
 class ShowImageSplitState(State):
@@ -134,7 +132,7 @@ class ShowSuggestedMove(State):
 		xforms = self._solver.find_first_move(self._ctx.classified_grid, 3)
 		if xforms is None:
 			print('No valid move found')
-			return None
+			return TakeScreenShot(self._ctx)
 
 		print(xforms)
 		col_xform, row_xform = xforms
