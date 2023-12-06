@@ -135,7 +135,7 @@ class ShowSuggestedMove(State):
 		self._solver = Solver(len(ctx.classified_grid[0]), len(ctx.classified_grid))
 
 	def handle(self, events: list[Event]) -> Self | None:
-		xforms = self._solver.find_first_move(self._ctx.classified_grid, 3)
+		xforms = self._solver.find_best_move(self._ctx.classified_grid, 3)
 		if xforms is None:
 			print('No valid move found')
 			return TakeScreenShot(self._ctx)

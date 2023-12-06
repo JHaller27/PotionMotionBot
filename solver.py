@@ -126,17 +126,26 @@ class Solver:
 			if score >= min_score:
 				return (move.col_xforms, move.row_xforms)
 
+	def find_best_move(self, board: list[list], min_score: int) -> tuple[T_XFORM, T_XFORM] | None:
+		move_map: dict[tuple[T_XFORM, T_XFORM], int] = {}
+		for board_edges in self._all_edges:
+			score = _score(board, board_edges, min_score)
+			if score >= min_score:
+				move = (board_edges.col_xforms, board_edges.row_xforms)
+				move_map[move] = score
+
+		if len(move_map) == 0:
+			return None
+
+		return max(move_map.items(), key=lambda kvp: kvp[1])[0]
+
 
 if __name__ == '__main__':
 	board = [
-		list('ROYCGRO'),
-		list('YCGROYG'),
-		list('GROYCGR'),
-		list('OYCGROY'),
-		list('CGROYCG'),
-		list('ROYCGRO'),
+		list('RRab'),
+		list('fgRR'),
 	]
 	size = (len(board[0]), len(board))
 	solver = Solver(size[0], size[1])
-	move = solver.find_first_move(board, 3)
+	move = solver.find_best_move(board, 3)
 	print(move)
