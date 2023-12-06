@@ -42,7 +42,7 @@ class PlayGame(State):
 		self._sub_state = ShowImageSplitState(ctx)
 
 		if config.ESCAPE_FROM_PLAY_KEY:
-			keyboard.add_hotkey(config.ESCAPE_FROM_PLAY_KEY, self._break_loop)
+			keyboard.add_hotkey(config.ESCAPE_FROM_PLAY_KEY, self._break_loop, suppress=True)
 			self._t_event = Event()
 
 	def _break_loop(self):
