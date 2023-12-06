@@ -34,23 +34,27 @@ class PlayGame(State):
 		super().__init__(ctx)
 		self._sub_state = ShowImageSplitState(ctx)
 
-		if get_config('DebugPrompts', 'EscapeFromPlay', 'enabled'):
-			keyboard.add_hotkey(get_config('DebugPrompts', 'EscapeFromPlay', 'keyname'), self._break_loop, suppress=True)
+		if get_config('DebugPrompts', 'HaltAutoplayLoop', 'enabled'):
+			keyboard.add_hotkey(get_config('DebugPrompts', 'HaltAutoplayLoop', 'keyname'), self._break_loop, suppress=True)
 			self._t_event = ThEvent()
 
 	def _break_loop(self):
-		print('Break loop')
-		self._t_event.set()
+		if not get_config('DebugPrompts', 'HaltAutoplayLoop', 'escape') and self._t_event.is_set():
+			self._t_event.clear()
+		else:
+			self._t_event.set()
 
 	def handle(self, events: list[Event]) -> Self | None:
 		if self._t_event is not None and self._t_event.is_set():
-			return None
+			if get_config('DebugPrompts', 'HaltAutoplayLoop', 'escape'):
+				return None
+			return self
 
 		next_state = self._sub_state.handle(events)
 
 		if next_state is None:
-			if get_config('DebugPrompts', 'EscapeFromPlay', 'enabled'):
-				keyboard.remove_hotkey(get_config('DebugPrompts', 'EscapeFromPlay', 'keyname'))
+			if get_config('DebugPrompts', 'HaltAutoplayLoop', 'enabled'):
+				keyboard.remove_hotkey(get_config('DebugPrompts', 'HaltAutoplayLoop', 'keyname'))
 			return None
 
 		if next_state != self._sub_state:

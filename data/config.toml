@@ -15,8 +15,9 @@ keycode = 13  # Return
 enabled = false
 keyname = "x"
 
-[DebugPrompts.EscapeFromPlay]
+[DebugPrompts.HaltAutoplayLoop]
 enabled = true
+escape = false
 keyname = "ESCAPE"
 
 [Solver]
