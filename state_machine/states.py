@@ -3,7 +3,7 @@ from typing import Self
 import colorsys
 import pygame
 from pygame.event import Event
-from PIL import Image, ImageStat
+from PIL import Image, ImageStat, ImageGrab
 
 from .state import State
 from .set_split_guides import SelectTopLeftState, WaitState
@@ -28,6 +28,16 @@ class SetSplitGuides(State):
 
 		self._sub_state = next_state
 		return self
+
+
+class TakeScreenShot(State):
+	def handle(self, events: list[Event]) -> Self | None:
+		pil_image = ImageGrab.grab(self._ctx.bbox)
+		screencap_surface = utils.pil_image_to_surface(pil_image)
+
+		self._ctx.background_surface = screencap_surface
+
+		return ShowImageSplitState(self._ctx)
 
 
 class ShowImageSplitState(State):
@@ -139,5 +149,9 @@ class ShowSuggestedMove(State):
 
 		pygame.draw.line(self._ctx.background_surface, 'red', src_rect.center, dst_rect.center, 4)
 		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
+
+		for event in events:
+			if event.type == pygame.KEYUP and event.key == pygame.K_RETURN:
+				return TakeScreenShot(self._ctx)
 
 		return self

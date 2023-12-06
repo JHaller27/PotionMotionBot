@@ -22,6 +22,7 @@ class GuideParams:
 @dataclass
 class DataContext:
 	window: pygame.Surface
+	bbox: tuple[int, int, int, int]
 	background_surface: pygame.Surface
 	guide_params: GuideParams
 	pil_image: Image.Image
