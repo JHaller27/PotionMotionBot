@@ -62,7 +62,7 @@ def generate_edges(w: int, h: int, col_xforms: T_XFORM, row_xforms: T_XFORM) -> 
 	return BoardEdges(col_xforms, row_xforms, edges)
 
 
-def _score(board: list[list], board_edges: BoardEdges) -> int:
+def _score(board: list[list], board_edges: BoardEdges, min_valid_score: int) -> int:
 	neighborhoods: dict[T_COORD, set[T_COORD]] = {}
 	representatives: dict[T_COORD, T_COORD] = {}
 
@@ -94,8 +94,7 @@ def _score(board: list[list], board_edges: BoardEdges) -> int:
 	if len(neighborhoods) == 0:
 		return 0
 
-	best_neighborhood = max(neighborhoods, key=lambda k: len(neighborhoods[k]))
-	return len(neighborhoods[best_neighborhood])
+	return sum(len(n) for n in neighborhoods.values() if len(n) >= min_valid_score)
 
 
 class Solver:
@@ -123,7 +122,7 @@ class Solver:
 
 	def find_first_move(self, board: list[list], min_score: int) -> tuple[T_XFORM, T_XFORM] | None:
 		for move in self._all_edges:
-			score = _score(board, move)
+			score = _score(board, move, min_score)
 			if score >= min_score:
 				return (move.col_xforms, move.row_xforms)
 
