@@ -5,7 +5,6 @@ import mouse
 from solver import Solver
 import utils
 from time import sleep
-import config
 
 from .state import State
 import keyboard
@@ -13,12 +12,13 @@ from pygame.event import Event
 from models import DataContext
 from typing import Self
 
+from config import get_config
 
 
 class TakeScreenShot(State):
 	def handle(self, events: list[Event]) -> Self | None:
-		if config.PROMPT_TO_SCREENCAP:
-			keyboard.wait(config.PROMPT_TO_SCREENCAP)
+		if get_config('DebugPrompts', 'PromptToScreencap', 'enabled'):
+			keyboard.wait(get_config('DebugPrompts', 'PromptToScreencap', 'keyname'))
 
 		pil_image = ImageGrab.grab(self._ctx.bbox)
 		screencap_surface = utils.pil_image_to_surface(pil_image)
@@ -98,11 +98,11 @@ class ShowImageSplitState(State):
 				self._ctx.classified_grid[-1].append(pixels2label_map[px_xy])
 				self._ctx.cell_rects[-1].append(pixels2rect_map[px_xy])
 
-		if not config.PROMPT_AFTER_SHOW_DRAG:
+		if not get_config('DebugPrompts', 'PromptAfterShowDrag', 'enabled'):
 			return ShowSuggestedMove(self._ctx)
 
 		for event in events:
-			if event.type == pygame.KEYUP and event.key == config.PROMPT_AFTER_SHOW_DRAG:
+			if event.type == pygame.KEYUP and event.key == get_config('DebugPrompts', 'PromptAfterShowDrag', 'keycode'):
 				return ShowSuggestedMove(self._ctx)
 
 		return self
@@ -142,15 +142,15 @@ class ShowSuggestedMove(State):
 		pygame.draw.line(self._ctx.background_surface, 'red', src_rect.center, dst_rect.center, 4)
 		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
 
-		if config.ENABLE_MOUSE:
+		if get_config('Mouse', 'enabled'):
 			mouse.drag(src_rect.centerx, src_rect.centery, dst_rect.centerx, dst_rect.centery, duration=0.1)
 			sleep(0.5)
 
-		if not config.PROMPT_AFTER_DRAG:
+		if not get_config('DebugPrompts', 'PromptAfterDrag', 'enabled'):
 			return TakeScreenShot(self._ctx)
 
 		for event in events:
-			if event.type == pygame.KEYUP and event.key == config.PROMPT_AFTER_DRAG:
+			if event.type == pygame.KEYUP and event.key == get_config('DebugPrompts', 'PromptAfterDrag', 'keycode'):
 				return TakeScreenShot(self._ctx)
 
 		return self

@@ -5,7 +5,7 @@ from pathlib import Path
 import json
 
 from models import GuideParams
-import config
+from config import get_config
 
 
 PERSIST_PATH = (Path('~') / 'PotionMotion' / 'persist.json').expanduser()
@@ -46,7 +46,7 @@ def get_grid_guide(size: tuple[int, int], guide_params: GuideParams) -> pygame.S
 def classify_hue(hue: float) -> str:
 	# hue = [0, 1]
 
-	for (x,y), label in config.CLASSIFICATION.items():
+	for label, (x,y) in get_config('Solver', 'Classification').items():
 		if x <= hue <= y:
 			return f'{label}'
 	return f'{hue:.3f}'

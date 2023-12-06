@@ -9,7 +9,7 @@ from .state import State
 from .set_split_guides import SelectTopLeftState, WaitState
 from .play_game import ShowImageSplitState
 
-import config
+from config import get_config
 
 
 class SetSplitGuides(State):
@@ -34,8 +34,8 @@ class PlayGame(State):
 		super().__init__(ctx)
 		self._sub_state = ShowImageSplitState(ctx)
 
-		if config.ESCAPE_FROM_PLAY_KEY:
-			keyboard.add_hotkey(config.ESCAPE_FROM_PLAY_KEY, self._break_loop, suppress=True)
+		if get_config('DebugPrompts', 'EscapeFromPlay', 'enabled'):
+			keyboard.add_hotkey(get_config('DebugPrompts', 'EscapeFromPlay', 'keyname'), self._break_loop, suppress=True)
 			self._t_event = ThEvent()
 
 	def _break_loop(self):
@@ -43,14 +43,14 @@ class PlayGame(State):
 		self._t_event.set()
 
 	def handle(self, events: list[Event]) -> Self | None:
-		if config.ESCAPE_FROM_PLAY_KEY and self._t_event.is_set():
+		if self._t_event is not None and self._t_event.is_set():
 			return None
 
 		next_state = self._sub_state.handle(events)
 
 		if next_state is None:
-			if config.ESCAPE_FROM_PLAY_KEY:
-				keyboard.remove_hotkey('ESCAPE')
+			if get_config('DebugPrompts', 'EscapeFromPlay', 'enabled'):
+				keyboard.remove_hotkey(get_config('DebugPrompts', 'EscapeFromPlay', 'keyname'))
 			return None
 
 		if next_state != self._sub_state:
