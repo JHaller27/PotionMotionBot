@@ -7,6 +7,7 @@ from PIL import Image, ImageStat, ImageGrab
 
 import mouse
 import keyboard
+from threading import Event
 
 from .state import State
 from .set_split_guides import SelectTopLeftState, WaitState
@@ -28,11 +29,37 @@ class SetSplitGuides(State):
 		next_state = self._sub_state.handle(events)
 
 		if next_state is None:
-			return ShowImageSplitState(self._ctx)
-		elif next_state == self._sub_state:
-			return self
+			return PlayGame(self._ctx)
 
-		self._sub_state = next_state
+		if next_state != self._sub_state:
+			self._sub_state = next_state
+		return self
+
+
+class PlayGame(State):
+	def __init__(self, ctx: DataContext) -> None:
+		super().__init__(ctx)
+		self._sub_state = ShowImageSplitState(ctx)
+
+		keyboard.add_hotkey('ESCAPE', self._break_loop)
+		self._t_event = Event()
+
+	def _break_loop(self):
+		print('Break loop')
+		self._t_event.set()
+
+	def handle(self, events: list[Event]) -> Self | None:
+		if self._t_event.is_set():
+			return None
+
+		next_state = self._sub_state.handle(events)
+
+		if next_state is None:
+			keyboard.remove_hotkey('ESCAPE')
+			return None
+
+		if next_state != self._sub_state:
+			self._sub_state = next_state
 		return self
 
 
