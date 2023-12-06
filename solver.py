@@ -20,10 +20,10 @@ def generate_edges(w: int, h: int, col_xforms: T_XFORM, row_xforms: T_XFORM) -> 
 			# Right edge
 			# If this row is xformed
 			if row_xforms[y] != 0:
-				if x == x-2:
-					pass
-				elif x == w-1:
+				if x == w-1:
 					edges.append(((y,x), (y, 0)))
+				elif x == w-row_xforms[y]-1:
+					pass
 				else:
 					edges.append(((y,x), (y, x+1)))
 			elif x != w-1:
@@ -41,10 +41,10 @@ def generate_edges(w: int, h: int, col_xforms: T_XFORM, row_xforms: T_XFORM) -> 
 			# Down edge
 			# If this col is xformed
 			if col_xforms[x] != 0:
-				if y == h-2:
-					pass
-				elif y == h-1:
+				if y == h-1:
 					edges.append(((y,x), (0, x)))
+				elif y == h-col_xforms[x]-1:
+					pass
 				else:
 					edges.append(((y,x), (y+1, x)))
 			elif y != h-1:
