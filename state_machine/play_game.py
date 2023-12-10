@@ -143,8 +143,8 @@ class ShowSuggestedMove(State):
 		self._ctx.window.blit(self._ctx.background_surface, self._ctx.background_surface.get_rect())
 
 		if get_config('Mouse', 'enabled'):
-			mouse.drag(src_rect.centerx, src_rect.centery, dst_rect.centerx, dst_rect.centery, duration=get_config('DebugPrompts', 'dragDuration'))
-			sleep(get_config('DebugPrompts', 'pauseDuration'))
+			mouse.drag(src_rect.centerx, src_rect.centery, dst_rect.centerx, dst_rect.centery, duration=get_config('Mouse', 'dragDuration'))
+			sleep(get_config('Mouse', 'pauseDuration'))
 
 		if not get_config('DebugPrompts', 'PromptAfterDrag', 'enabled'):
 			return TakeScreenShot(self._ctx)

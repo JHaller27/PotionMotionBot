@@ -1,9 +1,9 @@
 [Mouse]
 enabled = true
-
-[DebugPrompts]
 dragDuration = 0.1
 pauseDuration = 0.5
+
+[DebugPrompts]
 
 [DebugPrompts.PromptAfterDrag]
 enabled = false
