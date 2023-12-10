@@ -61,5 +61,6 @@ class PlayGame(State):
 			return None
 
 		if next_state != self._sub_state:
+			print(f'\tMoving to substate {next_state.__class__.__name__}')
 			self._sub_state = next_state
 		return self

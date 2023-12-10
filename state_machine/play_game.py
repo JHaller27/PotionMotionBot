@@ -111,14 +111,7 @@ class ShowImageSplitState(State):
 					self._ctx.classified_grid[-1].append(pixels2label_map[px_xy])
 					self._ctx.cell_rects[-1].append(pixels2rect_map[px_xy])
 
-		if not get_config('DebugPrompts', 'PromptAfterShowDrag', 'enabled'):
-			return ShowSuggestedMove(self._ctx)
-
-		for event in events:
-			if event.type == pygame.KEYUP and event.key == get_config('DebugPrompts', 'PromptAfterShowDrag', 'keycode'):
-				return ShowSuggestedMove(self._ctx)
-
-		return self
+		return ShowSuggestedMove(self._ctx)
 
 
 class ShowSuggestedMove(State):
@@ -130,6 +123,9 @@ class ShowSuggestedMove(State):
 			self._solver = Solver(len(ctx.classified_grid[0]), len(ctx.classified_grid))
 
 	def handle(self, events: list[Event]) -> Self | None:
+		if get_config('DebugPrompts', 'PromptToShowDrag', 'enabled'):
+			keyboard.wait(get_config('DebugPrompts', 'PromptToShowDrag', 'keyname'))
+
 		xforms = None
 
 		if self._solver:

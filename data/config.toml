@@ -2,7 +2,7 @@
 liveConfigs = true
 
 [Mouse]
-enabled = true
+enabled = false
 dragDuration = 0.1
 pauseDuration = 0.5
 
@@ -12,17 +12,17 @@ misclassificationsCountRange = [1, 5]  # Min is inclusive, max is exclusive
 
 [DebugPrompts]
 
+[DebugPrompts.PromptToScreencap]
+enabled = false
+keyname = "ENTER"
+
+[DebugPrompts.PromptToShowDrag]
+enabled = false
+keyname = "ENTER"
+
 [DebugPrompts.PromptAfterDrag]
 enabled = false
 keycode = 13  # Return
-
-[DebugPrompts.PromptAfterShowDrag]
-enabled = false
-keycode = 13  # Return
-
-[DebugPrompts.PromptToScreencap]
-enabled = false
-keyname = "x"
 
 [DebugPrompts.HaltAutoplayLoop]
 enabled = true
