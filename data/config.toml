@@ -8,7 +8,7 @@ pauseDuration = 0.5
 
 [Logging]
 enableMoves = false
-misclassificationsCountRange = [0, 4]
+misclassificationsCountRange = [1, 5]  # Min is inclusive, max is exclusive
 
 [DebugPrompts]
 
