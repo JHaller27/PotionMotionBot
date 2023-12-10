@@ -1,7 +1,10 @@
+[General]
+liveConfigs = true
+
 [Mouse]
 enabled = true
 dragDuration = 0.1
-pauseDuration = 2
+pauseDuration = 1.5
 
 [Logging]
 enableMoves = false
