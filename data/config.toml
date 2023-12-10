@@ -1,7 +1,11 @@
 [Mouse]
 enabled = true
 dragDuration = 0.1
-pauseDuration = 0.5
+pauseDuration = 2
+
+[Logging]
+enableMoves = false
+enableClassification = true
 
 [DebugPrompts]
 

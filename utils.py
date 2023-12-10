@@ -43,10 +43,15 @@ def get_grid_guide(size: tuple[int, int], guide_params: GuideParams) -> pygame.S
 	return surface
 
 
-def classify_hue(hue: float) -> str:
+def classify_hue(hue: float) -> str | None:
 	# hue = [0, 1]
 
 	for label, (x,y) in get_config('Solver', 'Classification').items():
 		if x <= hue <= y:
 			return f'{label}'
-	return f'{hue:.3f}'
+	return None
+
+
+def log(msg, *config_parts):
+	if len(config_parts) == 0 or get_config('Logging', *config_parts):
+		print(msg)

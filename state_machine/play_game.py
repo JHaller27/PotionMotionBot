@@ -4,6 +4,7 @@ from PIL import Image, ImageStat, ImageGrab
 import mouse
 from solver import Solver
 import utils
+from utils import log
 from time import sleep
 
 from .state import State
@@ -47,6 +48,7 @@ class ShowImageSplitState(State):
 		top_pixel_values: set[int] = set()
 		left_pixel_values: set[int] = set()
 
+		bad_classifications = []
 		for cell_rect in self._ctx.guide_params.get_cell_rects():
 			pixels2rect_map[cell_rect.topleft] = cell_rect
 
@@ -83,6 +85,14 @@ class ShowImageSplitState(State):
 
 			pixels2label_map[cell_rect.topleft] = label_text
 
+			if label_text is None:
+				bad_classifications.append(f'{mean_hsv[H]:.5f}')
+
+		if len(bad_classifications) > 0:
+			log('Failed to classify hues:', 'enableClassification')
+			for hue in bad_classifications:
+				log(f'\t{hue}', 'enableClassification')
+
 		# Set classifications in context
 		self._ctx.classified_grid = []
 		self._ctx.cell_rects = []
@@ -116,10 +126,10 @@ class ShowSuggestedMove(State):
 	def handle(self, events: list[Event]) -> Self | None:
 		xforms = self._solver.find_best_move(self._ctx.classified_grid, 3)
 		if xforms is None:
-			print('No valid move found')
+			log('No valid move found', 'enableMoves')
 			return TakeScreenShot(self._ctx)
 
-		print(xforms)
+		log(xforms, 'enableMoves')
 		col_xform, row_xform = xforms
 
 		src_cell = [0, 0]
