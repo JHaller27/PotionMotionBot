@@ -86,27 +86,30 @@ class ShowImageSplitState(State):
 			pixels2label_map[cell_rect.topleft] = label_text
 
 			if label_text is None:
-				bad_classifications.append(f'{mean_hsv[H]:.5f}')
+				bad_classifications.append('%.5f hsv(%.1f, %.1f%%, %.1f%%)' % (mean_hsv[H], mean_hsv[H]*360, mean_hsv[S]*100, mean_hsv[V]*100))
 
-		if len(bad_classifications) > 0:
-			log('Failed to classify hues:', 'enableClassification')
+		if len(bad_classifications) in range(*get_config('Logging', 'misclassificationsCountRange')):
+			log('Failed to classify hues:')
 			for hue in bad_classifications:
-				log(f'\t{hue}', 'enableClassification')
+				log(f'\t{hue}')
 
-		# Set classifications in context
-		self._ctx.classified_grid = []
-		self._ctx.cell_rects = []
+		if len(bad_classifications) > get_config('Solver', 'maxAcceptableClassificationFailures'):
+			self._ctx.classified_grid = None
+		else:
+			# Set classifications in context
+			self._ctx.classified_grid = []
+			self._ctx.cell_rects = []
 
-		top_pixel_values = sorted(top_pixel_values)
-		left_pixel_values = sorted(left_pixel_values)
-		for px_y in top_pixel_values:
-			self._ctx.classified_grid.append([])
-			self._ctx.cell_rects.append([])
+			top_pixel_values = sorted(top_pixel_values)
+			left_pixel_values = sorted(left_pixel_values)
+			for px_y in top_pixel_values:
+				self._ctx.classified_grid.append([])
+				self._ctx.cell_rects.append([])
 
-			for px_x in left_pixel_values:
-				px_xy = (px_x, px_y)
-				self._ctx.classified_grid[-1].append(pixels2label_map[px_xy])
-				self._ctx.cell_rects[-1].append(pixels2rect_map[px_xy])
+				for px_x in left_pixel_values:
+					px_xy = (px_x, px_y)
+					self._ctx.classified_grid[-1].append(pixels2label_map[px_xy])
+					self._ctx.cell_rects[-1].append(pixels2rect_map[px_xy])
 
 		if not get_config('DebugPrompts', 'PromptAfterShowDrag', 'enabled'):
 			return ShowSuggestedMove(self._ctx)
@@ -121,10 +124,17 @@ class ShowImageSplitState(State):
 class ShowSuggestedMove(State):
 	def __init__(self, ctx: DataContext) -> None:
 		super().__init__(ctx)
-		self._solver = Solver(len(ctx.classified_grid[0]), len(ctx.classified_grid))
+
+		self._solver = None
+		if self._ctx.classified_grid:
+			self._solver = Solver(len(ctx.classified_grid[0]), len(ctx.classified_grid))
 
 	def handle(self, events: list[Event]) -> Self | None:
-		xforms = self._solver.find_best_move(self._ctx.classified_grid, 3)
+		xforms = None
+
+		if self._solver:
+			xforms = self._solver.find_best_move(self._ctx.classified_grid, 3)
+
 		if xforms is None:
 			log('No valid move found', 'enableMoves')
 			return TakeScreenShot(self._ctx)

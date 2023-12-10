@@ -46,7 +46,7 @@ def get_grid_guide(size: tuple[int, int], guide_params: GuideParams) -> pygame.S
 def classify_hue(hue: float) -> str | None:
 	# hue = [0, 1]
 
-	for label, (x,y) in get_config('Solver', 'Classification').items():
+	for label, (x,y) in get_config('Solver', 'ClassificationTable').items():
 		if x <= hue <= y:
 			return f'{label}'
 	return None

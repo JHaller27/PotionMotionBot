@@ -4,11 +4,11 @@ liveConfigs = true
 [Mouse]
 enabled = true
 dragDuration = 0.1
-pauseDuration = 1.5
+pauseDuration = 0.5
 
 [Logging]
 enableMoves = false
-enableClassification = true
+misclassificationsCountRange = [0, 4]
 
 [DebugPrompts]
 
@@ -31,15 +31,16 @@ keyname = "ESCAPE"
 suppressKey = true
 
 [Solver]
-GridSize = [7, 6]
+gridSize = [7, 6]
+maxAcceptableClassificationFailures = 4
 
-[Solver.Classification]
+[Solver.ClassificationTable]
 RED = [0.000, 0.015]
-BROWN = [0.074, 0.084]
-ORANGE = [0.085, 0.087]
+BROWN = [0.074, 0.0847]
+ORANGE = [0.0848, 0.087]
 YELLOW = [0.140, 0.143]
 CLOVER = [0.247, 0.250]
-GREEN = [0.314, 0.322]
+GREEN = [0.313, 0.322]
 AQUA = [0.467, 0.470]
 BLUE = [0.578, 0.580]
 PURPLE = [0.748, 0.753]
