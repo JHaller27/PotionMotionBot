@@ -2,6 +2,8 @@
 enabled = true
 
 [DebugPrompts]
+dragDuration = 0.1
+pauseDuration = 0.5
 
 [DebugPrompts.PromptAfterDrag]
 enabled = false
@@ -19,6 +21,7 @@ keyname = "x"
 enabled = true
 escape = false
 keyname = "ESCAPE"
+suppressKey = true
 
 [Solver]
 GridSize = [7, 6]

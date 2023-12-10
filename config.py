@@ -1,4 +1,3 @@
-import pygame
 import tomllib
 from pathlib import Path
 
