@@ -6,6 +6,7 @@ from solver import Solver
 import utils
 from utils import log
 from time import sleep
+import logging
 
 from .state import State
 import keyboard
@@ -89,9 +90,9 @@ class ShowImageSplitState(State):
 				bad_classifications.append('%.5f hsv(%.1f, %.1f%%, %.1f%%)' % (mean_hsv[H], mean_hsv[H]*360, mean_hsv[S]*100, mean_hsv[V]*100))
 
 		if len(bad_classifications) in range(*get_config('Logging', 'misclassificationsCountRange')):
-			log('Failed to classify hues:')
+			log('Failed to classify hues:', logging.warn)
 			for hue in bad_classifications:
-				log(f'\t{hue}')
+				log(f'\t{hue}', logging.warn)
 
 		if len(bad_classifications) > get_config('Solver', 'maxAcceptableClassificationFailures'):
 			self._ctx.classified_grid = None
@@ -132,10 +133,10 @@ class ShowSuggestedMove(State):
 			xforms = self._solver.find_best_move(self._ctx.classified_grid, 3)
 
 		if xforms is None:
-			log('No valid move found', 'enableMoves')
+			log('No valid move found', logging.debug, 'enableMoves')
 			return TakeScreenShot(self._ctx)
 
-		log(xforms, 'enableMoves')
+		log(xforms, logging.debug, 'enableMoves')
 		col_xform, row_xform = xforms
 
 		src_cell = [0, 0]

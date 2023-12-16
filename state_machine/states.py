@@ -1,8 +1,9 @@
 from models import DataContext
 from typing import Self
-from pygame.event import Event
+import logging
 
 import keyboard
+from pygame.event import Event
 from threading import Event as ThEvent
 
 from .state import State
@@ -10,6 +11,7 @@ from .set_split_guides import SelectTopLeftState, WaitState
 from .play_game import ShowImageSplitState
 
 from config import get_config
+from utils import log
 
 
 HALT_AUTOPLAY_CONFIG = get_config('DebugPrompts', 'HaltAutoplayLoop')
@@ -61,6 +63,6 @@ class PlayGame(State):
 			return None
 
 		if next_state != self._sub_state:
-			print(f'\tMoving to substate {next_state.__class__.__name__}')
+			log(f'Moving to substate {next_state.__class__.__name__}', logging.info)
 			self._sub_state = next_state
 		return self

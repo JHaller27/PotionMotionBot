@@ -2,13 +2,20 @@
 liveConfigs = true
 
 [Mouse]
-enabled = false
+enabled = true
 dragDuration = 0.1
 pauseDuration = 0.5
 
 [Logging]
 enableMoves = false
 misclassificationsCountRange = [1, 5]  # Min is inclusive, max is exclusive
+logPath = './data/logs/log.txt'
+
+# logLevel = 'DEBUG'
+logLevel = 'INFO'
+# logLevel = 'WARNING'
+# logLevel = 'ERROR'
+# logLevel = 'CRITICAL'
 
 [DebugPrompts]
 
