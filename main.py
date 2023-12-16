@@ -3,7 +3,6 @@ import pygame
 import logging
 
 import utils
-from utils import log
 
 from models import DataContext
 import state_machine as fsm
@@ -42,7 +41,7 @@ def main():
 		pygame.display.flip()
 
 		if next_state != current_state:
-			log(f'Moving to {next_state.__class__.__name__}', logging.info)
+			utils.LOGGER.info(f'Moving to {next_state.__class__.__name__}')
 			current_state = next_state
 
 

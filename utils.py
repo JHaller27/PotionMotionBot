@@ -4,6 +4,7 @@ import pygame
 from pathlib import Path
 import json
 import logging
+import sys
 
 from models import GuideParams
 from config import get_config
@@ -12,13 +13,29 @@ from config import get_config
 PERSIST_PATH = (Path('~') / 'PotionMotion' / 'persist.json').expanduser()
 
 
-def setup_logging():
+def _setup_logger():
+	formatter = logging.Formatter(get_config('Logging', 'format'))
+
 	log_path = Path(get_config('Logging', 'logPath')).expanduser()
 	log_level = getattr(logging, get_config('Logging', 'logLevel').upper())
-	logging.basicConfig(filename=log_path, level=log_level)
+	
+	logger = logging.Logger(None)
+
+	file_handler = logging.FileHandler(log_path, 'w')
+	file_handler.setFormatter(formatter)
+	logger.addHandler(file_handler)
+
+	console_handler = logging.StreamHandler(sys.stdout)
+	console_handler.setLevel(log_level)
+	console_handler.setFormatter(formatter)
+	logger.addHandler(console_handler)
 
 	print(f'Logging to {log_path.absolute()}')
-setup_logging()
+
+	return logger
+
+
+LOGGER = _setup_logger()
 
 
 def pil_image_to_surface(pil_image: Image.Image) -> pygame.Surface:
@@ -60,8 +77,3 @@ def classify_hue(hue: float) -> str | None:
 		if x <= hue <= y:
 			return f'{label}'
 	return None
-
-
-def log(msg, log_fn, *config_parts):
-	if len(config_parts) == 0 or get_config('Logging', *config_parts):
-		log_fn(msg)

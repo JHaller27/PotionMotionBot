@@ -11,7 +11,7 @@ from .set_split_guides import SelectTopLeftState, WaitState
 from .play_game import ShowImageSplitState
 
 from config import get_config
-from utils import log
+from utils import LOGGER
 
 
 HALT_AUTOPLAY_CONFIG = get_config('DebugPrompts', 'HaltAutoplayLoop')
@@ -63,6 +63,6 @@ class PlayGame(State):
 			return None
 
 		if next_state != self._sub_state:
-			log(f'Moving to substate {next_state.__class__.__name__}', logging.info)
+			LOGGER.info(f'Moving to substate {next_state.__class__.__name__}')
 			self._sub_state = next_state
 		return self

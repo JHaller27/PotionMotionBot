@@ -4,7 +4,7 @@ from PIL import Image, ImageStat, ImageGrab
 import mouse
 from solver import Solver
 import utils
-from utils import log
+from utils import LOGGER
 from time import sleep
 import logging
 
@@ -90,9 +90,9 @@ class ShowImageSplitState(State):
 				bad_classifications.append('%.5f hsv(%.1f, %.1f%%, %.1f%%)' % (mean_hsv[H], mean_hsv[H]*360, mean_hsv[S]*100, mean_hsv[V]*100))
 
 		if len(bad_classifications) in range(*get_config('Logging', 'misclassificationsCountRange')):
-			log('Failed to classify hues:', logging.warn)
+			LOGGER.warning('Failed to classify hues:')
 			for hue in bad_classifications:
-				log(f'\t{hue}', logging.warn)
+				LOGGER.warning(f'\t{hue}')
 
 		if len(bad_classifications) > get_config('Solver', 'maxAcceptableClassificationFailures'):
 			self._ctx.classified_grid = None
@@ -133,10 +133,12 @@ class ShowSuggestedMove(State):
 			xforms = self._solver.find_best_move(self._ctx.classified_grid, 3)
 
 		if xforms is None:
-			log('No valid move found', logging.debug, 'enableMoves')
+			if get_config('Logging', 'enableMoves'):
+				LOGGER.debug('No valid move found')
 			return TakeScreenShot(self._ctx)
 
-		log(xforms, logging.debug, 'enableMoves')
+		if get_config('Logging', 'enableMoves'):
+			LOGGER.debug(xforms)
 		col_xform, row_xform = xforms
 
 		src_cell = [0, 0]

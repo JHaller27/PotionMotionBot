@@ -11,11 +11,15 @@ enableMoves = false
 misclassificationsCountRange = [1, 5]  # Min is inclusive, max is exclusive
 logPath = './data/logs/log.txt'
 
+# Note: All levels are logged to file. These are for the console only
+# Note: Due to the limitation of my smooth brain, the log level cannot be "hot loaded", even with liveConfigs enabled
 # logLevel = 'DEBUG'
-logLevel = 'INFO'
+# logLevel = 'INFO'
 # logLevel = 'WARNING'
-# logLevel = 'ERROR'
+logLevel = 'ERROR'
 # logLevel = 'CRITICAL'
+
+format = "[%(levelname)s]%(message)s"
 
 [DebugPrompts]
 
