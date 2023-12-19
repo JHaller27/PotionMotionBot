@@ -18,6 +18,8 @@ def _setup_logger():
 
 	log_path = Path(get_config('Logging', 'logPath')).expanduser()
 	log_level = getattr(logging, get_config('Logging', 'logLevel').upper())
+
+	log_path.parent.mkdir(exist_ok=True, parents=True)
 	
 	logger = logging.Logger(None)
 
